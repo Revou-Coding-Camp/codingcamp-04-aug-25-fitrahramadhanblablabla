@@ -22,4 +22,3 @@ This project was created as part of coding practice to learn DOM manipulation, e
 
 ---
 
-## 📂 Project Structure
