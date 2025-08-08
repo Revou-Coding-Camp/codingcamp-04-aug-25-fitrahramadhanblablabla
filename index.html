@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Todo List Application - Fitrah</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <style>
+        /* Custom dark mode styles */
+        body {
+            background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
+            color: #f5f5f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* Container */
+        main {
+            max-width: 700px;
+            margin: auto;
+        }
+
+        /* Todo Card */
+        .todo-card {
+            background: rgba(30, 30, 30, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .todo-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 255, 200, 0.2);
+        }
+
+        /* Buttons */
+        button {
+            transition: all 0.2s ease;
+        }
+
+        .btn-filter {
+            background: transparent;
+            border: 1px solid #666;
+            color: #f5f5f5;
+            padding: 6px 12px;
+            border-radius: 6px;
+        }
+
+        .btn-filter:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #0ff;
+            color: #0ff;
+        }
+
+        .btn-filter.active {
+            background: #0ff;
+            color: #000;
+            border-color: #0ff;
+        }
+
+        /* Complete Button */
+        .btn-complete {
+            background: #00c853;
+            color: white;
+            border-radius: 6px;
+        }
+
+        .btn-complete:hover {
+            background: #00e676;
+        }
+
+        /* Delete Button */
+        .btn-delete {
+            background: #d50000;
+            color: white;
+            border-radius: 6px;
+        }
+
+        .btn-delete:hover {
+            background: #ff1744;
+        }
+
+        /* Animasi fadeInUp */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fadeInUp {
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        /* Input and button focus */
+        input[type="text"],
+        input[type="date"] {
+            background-color: #222;
+            color: #eee;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 8px 12px;
+            transition: border-color 0.2s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="date"]:focus {
+            outline: none;
+            border-color: #0ff;
+            box-shadow: 0 0 5px #0ff;
+            background-color: #111;
+        }
+
+        button:focus {
+            outline: none;
+            box-shadow: 0 0 5px #0ff;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="text-center mb-8">
+        <h1 class="text-4xl font-extrabold tracking-wide">Todo List Application</h1>
+    </header>
+
+    <main>
+        <!-- Input Form -->
+        <form class="flex flex-wrap gap-4 justify-center mb-6">
+            <input type="text" id="todo-input" placeholder="Add a new todo" class="w-full sm:w-1/3" />
+            <input type="date" id="date-input" class="w-full sm:w-1/3" />
+            <button type="button" onclick="validateForm()"
+                class="btn-complete px-6 py-2 font-semibold shadow">Add Todo</button>
+        </form>
+
+        <!-- Filter & Delete Buttons -->
+        <section
+            class="flex flex-wrap gap-4 justify-between items-center mb-6 max-w-full sm:max-w-md mx-auto">
+            <div class="flex gap-3">
+                <button id="filter-all" class="btn-filter active">All</button>
+                <button id="filter-incomplete" class="btn-filter">Incomplete</button>
+                <button id="filter-complete" class="btn-filter">Complete</button>
+            </div>
+            <button onclick="clearTodos()" class="btn-delete px-4 py-2 font-semibold shadow">Delete All</button>
+        </section>
+
+        <!-- Todo List -->
+        <section id="todo-list" class="max-w-full mx-auto">
+            <p class="text-gray-400 text-center">No todos added yet.</p>
+        </section>
+    </main>
+
+    <footer class="mt-12 text-center text-gray-500 text-sm">
+        © 2025 Todo List Application
+    </footer>
+
+    <script>
+        let todoList = [];
+        let currentFilter = 'all';
+
+        function generateId() {
+            return Date.now() + Math.random().toString(16).slice(2);
+        }
+
+        function validateForm() {
+            const todoInput = document.getElementById('todo-input').value.trim();
+            const dateInput = document.getElementById('date-input').value;
+
+            if (todoInput === '' || dateInput === '') {
+                alert('Please enter a todo item and a due date.');
+            } else {
+                addTodo(todoInput, dateInput);
+                document.getElementById('todo-input').value = '';
+                document.getElementById('date-input').value = '';
+            }
+        }
+
+        function addTodo(task, date) {
+            const todoItem = {
+                id: generateId(),
+                task,
+                date,
+                done: false
+            };
+            todoList.push(todoItem);
+            console.log(`✅ Todo added: "${task}" (Due: ${date})`);
+            displayTodos(currentFilter);
+        }
+
+        function displayTodos(filter = 'all') {
+            const todoListElement = document.getElementById('todo-list');
+            todoListElement.innerHTML = '';
+
+            const filteredTodos = todoList.filter(item => {
+                if (filter === 'complete') return item.done;
+                if (filter === 'incomplete') return !item.done;
+                return true;
+            });
+
+            if (filteredTodos.length === 0) {
+                todoListElement.innerHTML = `<p class="text-gray-400 text-center">No todos found.</p>`;
+                return;
+            }
+
+            filteredTodos.forEach(item => {
+                todoListElement.innerHTML += `
+                <div class="todo-card flex justify-between items-center animate-fadeInUp">
+                    <span class="${item.done ? 'line-through text-gray-500' : 'text-white'}">${item.task} <small class="text-gray-400">(${item.date})</small></span>
+                    <div class="flex gap-2">
+                        <button onclick="toggleComplete('${item.id}')" class="btn-complete">${item.done ? 'Undo' : 'Complete'}</button>
+                        <button onclick="deleteTodo('${item.id}')" class="btn-delete">Delete</button>
+                    </div>
+                </div>
+                `;
+            });
+
+            updateFilterButtons();
+        }
+
+        function toggleComplete(id) {
+            const todo = todoList.find(t => t.id === id);
+            if (todo) {
+                todo.done = !todo.done;
+                console.log(`🔄 Todo "${todo.task}" marked as ${todo.done ? 'complete' : 'incomplete'}`);
+            }
+            displayTodos(currentFilter);
+        }
+
+        function deleteTodo(id) {
+            const todo = todoList.find(t => t.id === id);
+            if (todo) {
+                console.log(`🗑️ Todo deleted: "${todo.task}"`);
+            }
+            todoList = todoList.filter(t => t.id !== id);
+            displayTodos(currentFilter);
+        }
+
+        function clearTodos() {
+            todoList = [];
+            console.log('🗑️ All todos deleted');
+            displayTodos('all');
+        }
+
+        function updateFilterButtons() {
+            ['all', 'incomplete', 'complete'].forEach(filter => {
+                const btn = document.getElementById('filter-' + filter);
+                if (filter === currentFilter) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        document.getElementById('filter-all').addEventListener('click', () => {
+            currentFilter = 'all';
+            displayTodos('all');
+        });
+
+        document.getElementById('filter-incomplete').addEventListener('click', () => {
+            currentFilter = 'incomplete';
+            displayTodos('incomplete');
+        });
+
+        document.getElementById('filter-complete').addEventListener('click', () => {
+            currentFilter = 'complete';
+            displayTodos('complete');
+        });
+
+        // Initialize
+        displayTodos('all');
+    </script>
+</body>
+
+</html>
